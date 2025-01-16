@@ -8,8 +8,11 @@ import routesDespesas from "./routes/despesas"
 const app = express()
 const port = 3002
 
-// Permitir requisições de qualquer origem
-app.use(cors({ origin: 'http://localhost:3000' }))
+app.use(cors({
+    origin: 'http://localhost:3000', // Substitua pela URL do frontend em produção, se necessário
+    methods: 'GET,POST,PUT,PATCH,DELETE', // Métodos permitidos
+    credentials: true // Permite cookies, se necessário
+  }));
 
 app.use(express.json())
 
