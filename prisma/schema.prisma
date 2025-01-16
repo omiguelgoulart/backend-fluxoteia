@@ -1,0 +1,71 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id                Int       @id @default(autoincrement())
+  nome              String
+  email             String    @unique
+  senha             String
+  resetToken        String?
+  resetTokenExpires DateTime?
+  bloqueado         Boolean   @default(false)
+  bloqueadoAte      DateTime?
+  tentativasLogin   Int?      @default(0)
+  logs              Log[]
+
+  @@map("usuarios")
+}
+
+model Log {
+  id          Int      @id @default(autoincrement())
+  descricao   String   @db.VarChar(60)
+  complemento String   @db.VarChar(255)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now())
+  usuarioId   Int
+  usuario     Usuario  @relation(fields: [usuarioId], references: [id])
+
+  @@map("logs")
+}
+
+model Despesas {
+  id          Int      @id @default(autoincrement())
+  date        DateTime @default(now())
+  description String
+  account     ACCOUNT
+  category    CATEGORY
+  subcategory String
+  valor       Float
+  status      STATUS
+
+  @@map("despesas")
+}
+
+enum ACCOUNT {
+  CRESSOL
+  BANRISUL
+  IFOOD
+  STONE
+  CAIXA_FISICO
+}
+
+enum STATUS {
+  PENDENTE
+  PAGO
+}
+
+enum CATEGORY {
+  CUSTOS_OPERACAO
+  DESPESAS_FIXAS
+  DESPESAS_VARIAVEIS
+  DESPESAS_ADMINISTRATIVAS
+  OUTRAS_DESPESAS
+  IMPOSTOS_CONTRIBUICOES
+  OUTRAS_RECEITAS
+}
