@@ -9,8 +9,8 @@ const port = 3002;
 
 app.use(
   cors({
-    origin: 'http://localhost:3000', // URL do frontend
-    methods: 'GET,POST,PUT,PATCH,DELETE', // Métodos permitidos
+    origin: ['http://localhost:3000', 'https://seu-frontend-deployado.com'], // Adicione a URL do frontend aqui
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], // Métodos permitidos
     credentials: true, // Permitir cookies, se necessário
   })
 );
