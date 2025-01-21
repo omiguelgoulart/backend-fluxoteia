@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { Router} from 'express';
-import { z } from 'zod';
+import { number, z } from 'zod';
 import { verificaToken } from '../middlewares/verificaToken';
 
 const prisma = new PrismaClient();
@@ -8,9 +8,10 @@ const router = Router();
 
 // Validação com Zod para criar ou atualizar uma despesa
 const despesaSchema = z.object({
-  date: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Data inválida' }),
-  description: z.string().min(3, { message: 'Descrição deve ter no mínimo 3 caracteres' }),
-  account: z.enum(['CRESSOL', 'BANRISUL', 'IFOOD', 'STONE', 'CAIXA_FISICO']),
+  date: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Data inválida' }).optional(),
+  number: z.string().optional(), // Campo opcional
+  description: z.string().min(3, { message: 'Descrição deve ter no mínimo 3 caracteres' }).optional(),
+  account: z.enum(['CRESSOL', 'BANRISUL', 'IFOOD', 'STONE', 'CAIXA_FISICO']).optional(),
   category: z.enum([
     'CUSTOS_OPERACAO',
     'DESPESAS_FIXAS',
@@ -19,10 +20,10 @@ const despesaSchema = z.object({
     'OUTRAS_DESPESAS',
     'IMPOSTOS_CONTRIBUICOES',
     'OUTRAS_RECEITAS',
-  ]),
-  subcategory: z.string().min(3, { message: 'Subcategoria deve ter no mínimo 3 caracteres' }),
-  amount: z.number().positive({ message: 'Valor deve ser maior que zero' }),
-  status: z.enum(['PENDENTE', 'PAGO']),
+  ]).optional(),
+  subcategory: z.string().min(3, { message: 'Subcategoria deve ter no mínimo 3 caracteres' }).optional(),
+  amount: z.number().positive({ message: 'Valor deve ser maior que zero' }).optional(),
+  status: z.enum(['PENDENTE', 'PAGO']).optional(),
 });
 
 // GET - Listar todas as despesas
@@ -42,11 +43,21 @@ router.post('/', verificaToken, async (req, res) => {
     // Validação com Zod
     const data = despesaSchema.parse(req.body);
 
+    // Cria o payload para o Prisma, mapeando os campos corretamente
+    const payload = {
+      date: data.date ? new Date(data.date) : undefined, // Converte para objeto Date se definido
+      number: data.number ?? null,
+      description: data.description ?? undefined,
+      account: data.account ?? null,
+      category: data.category ?? null,
+      subcategory: data.subcategory ?? null,
+      valor: data.amount ?? null, // Mapeia 'amount' para 'valor'
+      status: data.status ?? null,
+    };
+
+    // Criação da despesa
     const novaDespesa = await prisma.despesas.create({
-      data: {
-        ...data,
-        valor: data.amount,
-      },
+      data: payload, // Usa o payload ajustado
     });
 
     res.status(201).json(novaDespesa);

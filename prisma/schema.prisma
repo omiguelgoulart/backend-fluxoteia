@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -36,13 +36,14 @@ model Log {
 
 model Despesas {
   id          Int      @id @default(autoincrement())
-  date        DateTime @default(now())
-  description String
-  account     ACCOUNT
-  category    CATEGORY
-  subcategory String
-  valor       Float
-  status      STATUS
+  date        DateTime? @default(now())
+  number      String?
+  description String?
+  account     ACCOUNT?
+  category    CATEGORY?
+  subcategory String?
+  value       Float?
+  status      STATUS?
 
   @@map("despesas")
 }
@@ -68,4 +69,22 @@ enum CATEGORY {
   OUTRAS_DESPESAS
   IMPOSTOS_CONTRIBUICOES
   OUTRAS_RECEITAS
+}
+
+
+model Entrada {
+  id             Int      @id @default(autoincrement())
+  data           DateTime @default(now()) // Data da entrada
+  dinheiro       Float?   // Valor em dinheiro
+  debito         Float?   // Valor no débito
+  pix            Float?   // Valor via PIX
+  ifood          Float?   // Valor vindo do iFood
+  credito        Float?   // Valor no crédito
+  maquinaCredito Float?   // Valor associado à máquina de crédito
+  maquinaDebito  Float?   // Valor associado à máquina de débito
+  voucher        Float?   // Valor em voucher
+  total          Float    // Total da transação (obrigatório)
+  numeroPessoas  Int?     // Número de pessoas na transação
+
+  @@map("entrada")
 }
