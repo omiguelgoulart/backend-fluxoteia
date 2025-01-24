@@ -1,13 +1,13 @@
 {
-  "name": "ternos-avenida",
+  "name": "backend-fluxo",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only index.ts",
+    "start": "node index.js",
     "build": "tsc",
-    "start": "vercel dev",
-    "vercel-build": "prisma migrate deploy && tsc"
+    "vercel-build": "npm run build"
   },
   "keywords": [],
   "author": "",
@@ -37,6 +37,7 @@
     "@types/jsonwebtoken": "^9.0.7",
     "@types/nodemailer": "^6.4.17",
     "prisma": "^6.2.1",
-    "ts-node-dev": "^2.0.0"
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.7.3"
   }
 }
