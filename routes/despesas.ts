@@ -9,7 +9,7 @@ const router = Router();
 // Validação com Zod para criar ou atualizar uma despesa
 const despesaSchema = z.object({
   date: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Data inválida' }).optional(),
-  number: z.string().optional(), // Campo opcional
+  number: z.string().optional(),
   description: z.string().min(3, { message: 'Descrição deve ter no mínimo 3 caracteres' }).optional(),
   account: z.enum(['CRESSOL', 'BANRISUL', 'IFOOD', 'STONE', 'CAIXA_FISICO']).optional(),
   category: z.enum([
@@ -22,9 +22,10 @@ const despesaSchema = z.object({
     'OUTRAS_RECEITAS',
   ]).optional(),
   subcategory: z.string().min(3, { message: 'Subcategoria deve ter no mínimo 3 caracteres' }).optional(),
-  amount: z.number().positive({ message: 'Valor deve ser maior que zero' }).optional(),
+  amount : z.number().positive({ message: 'Valor deve ser maior que zero' }).optional(), // Deve aceitar "value"
   status: z.enum(['PENDENTE', 'PAGO']).optional(),
 });
+
 
 // GET - Listar todas as despesas
 router.get('/', async (req, res ) => {
@@ -40,29 +41,33 @@ router.get('/', async (req, res ) => {
 // POST - Criar uma nova despesa
 router.post('/', verificaToken, async (req, res) => {
   try {
-    // Validação com Zod
-    const data = despesaSchema.parse(req.body);
+    console.log('Payload recebido:', req.body);
 
-    // Cria o payload para o Prisma, mapeando os campos corretamente
+    const data = despesaSchema.parse(req.body);
+    console.log('Dados validados com Zod:', data);
+
     const payload = {
-      date: data.date ? new Date(data.date) : undefined, // Converte para objeto Date se definido
+      date: data.date ? new Date(data.date) : undefined,
       number: data.number ?? null,
       description: data.description ?? undefined,
       account: data.account ?? null,
       category: data.category ?? null,
       subcategory: data.subcategory ?? null,
-      valor: data.amount ?? null, // Mapeia 'amount' para 'valor'
+      valor: data.amount  ?? null, // Certifique-se de alinhar com o frontend
       status: data.status ?? null,
     };
 
-    // Criação da despesa
+    console.log('Payload para o Prisma:', payload);
+
     const novaDespesa = await prisma.despesas.create({
-      data: payload, // Usa o payload ajustado
+      data: payload,
     });
 
+    console.log('Despesa criada:', novaDespesa);
     res.status(201).json(novaDespesa);
   } catch (error) {
     if (error instanceof z.ZodError) {
+      console.error('Erro de validação:', error.errors);
       res.status(400).json({
         error: 'Erro de validação',
         detalhes: error.errors,

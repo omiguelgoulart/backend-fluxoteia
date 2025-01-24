@@ -42,7 +42,7 @@ model Despesas {
   account     ACCOUNT?
   category    CATEGORY?
   subcategory String?
-  value       Float?
+  amount        Float?
   status      STATUS?
   movimentacao Movimentacoes?
 
@@ -97,7 +97,7 @@ model Movimentacoes {
   date           DateTime @default(now())
   description    String?
   account        ACCOUNT? // Relacionado a Despesas
-  value          Float
+  amount         Float
   status         STATUS?  // Relacionado a Despesas
   tipo           TipoMovimentacao // ENTRADA ou SAIDA
   entradaId      Int?     @unique  // Relacionamento com Entrada (se for uma entrada)

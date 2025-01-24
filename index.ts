@@ -16,7 +16,6 @@ app.use(
   cors({
     origin: [
       'http://localhost:3000',
-      'https://seu-frontend-deployado.com',
       'https://fluxoteia.vercel.app',
       'http://fluxoteia-miguels-projects-c40d335f.vercel.app',
     ],
