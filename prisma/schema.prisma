@@ -44,6 +44,7 @@ model Despesas {
   subcategory String?
   value       Float?
   status      STATUS?
+  movimentacao Movimentacoes?
 
   @@map("despesas")
 }
@@ -85,6 +86,27 @@ model Entrada {
   voucher        Float?   // Valor em voucher
   total          Float    // Total da transação (obrigatório)
   numeroPessoas  Int?     // Número de pessoas na transação
+  movimentacao   Movimentacoes?
 
   @@map("entrada")
+}
+
+
+model Movimentacoes {
+  id             Int      @id @default(autoincrement())
+  date           DateTime @default(now())
+  description    String?
+  account        ACCOUNT? // Relacionado a Despesas
+  value          Float
+  status         STATUS?  // Relacionado a Despesas
+  tipo           TipoMovimentacao // ENTRADA ou SAIDA
+  entradaId      Int?     @unique  // Relacionamento com Entrada (se for uma entrada)
+  despesaId      Int?     @unique  // Relacionamento com Despesas (se for uma despesa)
+  entrada        Entrada? @relation(fields: [entradaId], references: [id])
+  despesa        Despesas? @relation(fields: [despesaId], references: [id])
+}
+
+enum TipoMovimentacao {
+  ENTRADA
+  SAIDA
 }

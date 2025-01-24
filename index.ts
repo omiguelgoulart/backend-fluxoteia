@@ -5,6 +5,7 @@ import routesUsuario from './routes/usuarios';
 import routesDespesas from './routes/despesas';
 import routesEntradas from './routes/entradas';
 import routesCupom from './routes/cupom';
+import routesMovimentacao from './routes/movimentacoes';
 import { Request, Response, NextFunction } from 'express';
 
 
@@ -41,6 +42,7 @@ app.use('/usuarios', routesUsuario);
 app.use('/despesas', routesDespesas);
 app.use('/entradas', routesEntradas);
 app.use('/cupom', routesCupom);
+app.use('/movimentacao', routesMovimentacao);
 
 
 app.get('/', (req, res) => {
