@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { Router} from 'express';
+import { Router } from 'express';
 import { number, z } from 'zod';
 import { verificaToken } from '../middlewares/verificaToken';
 
@@ -22,13 +22,12 @@ const despesaSchema = z.object({
     'OUTRAS_RECEITAS',
   ]).optional(),
   subcategory: z.string().min(3, { message: 'Subcategoria deve ter no mínimo 3 caracteres' }).optional(),
-  amount : z.number().positive({ message: 'Valor deve ser maior que zero' }).optional(), // Deve aceitar "value"
+  amount: z.number().positive({ message: 'Valor deve ser maior que zero' }).optional(),
   status: z.enum(['PENDENTE', 'PAGO']).optional(),
 });
 
-
 // GET - Listar todas as despesas
-router.get('/', async (req, res ) => {
+router.get('/', async (req, res) => {
   try {
     const despesas = await prisma.despesas.findMany();
     res.json(despesas);
@@ -48,17 +47,30 @@ router.post('/', verificaToken, async (req, res) => {
       return;
     }
 
+    // Cria a despesa
     const despesa = await prisma.despesas.create({
       data: validaDespesas.data,
     });
+
+    // Cria a movimentação relacionada
+    await prisma.movimentacoes.create({
+      data: {
+        date: validaDespesas.data.date ? new Date(validaDespesas.data.date) : new Date(),
+        description: validaDespesas.data.description,
+        account: validaDespesas.data.account,
+        amount: validaDespesas.data.amount || 0,
+        status: validaDespesas.data.status,
+        tipo: 'SAIDA',
+        despesaId: despesa.id,
+      },
+    });
+
     res.status(201).json(despesa);
   } catch (error) {
     console.error('Erro ao criar despesa:', error);
     res.status(500).json({ error: 'Erro ao criar despesa' });
   }
 });
-
-
 
 // PATCH - Atualizar uma despesa específica
 router.patch('/:id', verificaToken, async (req, res) => {
@@ -102,8 +114,14 @@ router.delete('/:id', verificaToken, async (req, res) => {
   }
 
   try {
+    // Exclui a despesa
     await prisma.despesas.delete({
       where: { id: Number(id) },
+    });
+
+    // Remove a movimentação relacionada (se existir)
+    await prisma.movimentacoes.deleteMany({
+      where: { despesaId: Number(id) },
     });
 
     res.status(204).send();
