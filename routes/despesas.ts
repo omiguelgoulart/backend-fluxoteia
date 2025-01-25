@@ -41,10 +41,9 @@ router.get('/', async (req, res ) => {
 // POST - Criar uma nova despesa
 router.post('/', verificaToken, async (req, res) => {
   try {
-    console.log('Payload recebido:', req.body);
-
-    const data = despesaSchema.parse(req.body);
-    console.log('Dados validados com Zod:', data);
+    console.log('Payload recebido:', req.body); // Adicione este log
+    const data = despesaSchema.parse(req.body); // Valida com Zod
+    console.log('Dados validados pelo Zod:', data); // Adicione este log
 
     const payload = {
       date: data.date ? new Date(data.date) : undefined,
@@ -53,17 +52,16 @@ router.post('/', verificaToken, async (req, res) => {
       account: data.account ?? null,
       category: data.category ?? null,
       subcategory: data.subcategory ?? null,
-      valor: data.amount  ?? null, // Certifique-se de alinhar com o frontend
+      valor: data.amount ?? null, // Mapear corretamente para o banco
       status: data.status ?? null,
     };
 
-    console.log('Payload para o Prisma:', payload);
-
+    console.log('Payload para o Prisma:', payload); // Adicione este log
     const novaDespesa = await prisma.despesas.create({
       data: payload,
     });
 
-    console.log('Despesa criada:', novaDespesa);
+    console.log('Despesa criada com sucesso:', novaDespesa);
     res.status(201).json(novaDespesa);
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -74,10 +72,11 @@ router.post('/', verificaToken, async (req, res) => {
       });
       return;
     }
-    console.error('Erro ao criar despesa:', error);
+    console.error('Erro ao criar despesa:', error); // Mostra o erro detalhado
     res.status(500).json({ error: 'Erro ao criar despesa' });
   }
 });
+
 
 // PATCH - Atualizar uma despesa específica
 router.patch('/:id', verificaToken, async (req, res) => {

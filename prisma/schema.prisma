@@ -42,7 +42,7 @@ model Despesas {
   account     ACCOUNT?
   category    CATEGORY?
   subcategory String?
-  amount        Float?
+  valor        Float?
   status      STATUS?
   movimentacao Movimentacoes?
 
