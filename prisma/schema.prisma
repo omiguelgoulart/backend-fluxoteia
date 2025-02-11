@@ -44,9 +44,20 @@ model Despesas {
   subcategory String?
   amount        Float?
   status      STATUS?
-  movimentacao Movimentacoes?
+  movimentacoes   Movimentacoes[] 
 
   @@map("despesas")
+}
+
+model Banco {
+  id              Int              @id @default(autoincrement())
+  date            DateTime?        // Campo opcional para a data
+  account         ACCOUNT?         // Enum para o tipo de conta
+  description     String?          // Descrição opcional
+  amount          Float?           // Valor numérico opcional
+  movimentacoes   Movimentacoes[]
+
+  @@map("bancos")
 }
 
 enum ACCOUNT {
@@ -86,24 +97,29 @@ model Entrada {
   voucher        Float?   // Valor em voucher
   total          Float    // Total da transação (obrigatório)
   numeroPessoas  Int?     // Número de pessoas na transação
-  movimentacao   Movimentacoes?
 
   @@map("entrada")
 }
 
-
 model Movimentacoes {
-  id             Int      @id @default(autoincrement())
-  date           DateTime @default(now())
-  description    String?
-  account        ACCOUNT? // Relacionado a Despesas
-  amount         Float
-  status         STATUS?  // Relacionado a Despesas
-  tipo           TipoMovimentacao // ENTRADA ou SAIDA
-  entradaId      Int?     @unique  // Relacionamento com Entrada (se for uma entrada)
-  despesaId      Int?     @unique  // Relacionamento com Despesas (se for uma despesa)
-  entrada        Entrada? @relation(fields: [entradaId], references: [id])
-  despesa        Despesas? @relation(fields: [despesaId], references: [id])
+  id          Int             @id @default(autoincrement())
+  date        DateTime        @default(now())
+  description String?
+  account     ACCOUNT?
+  amount      Float
+  status      STATUS?
+  tipo        TipoMovimentacao
+
+  // Relacionamento com Banco (para crédito)
+  creditoId   Int?
+  credito     Banco?          @relation(fields: [creditoId], references: [id])
+
+  // Relacionamento com Despesas (para débito)
+  debitoId    Int?
+  despesa     Despesas?       @relation(fields: [debitoId], references: [id])
+
+
+  @@map("movimentacoes")
 }
 
 enum TipoMovimentacao {

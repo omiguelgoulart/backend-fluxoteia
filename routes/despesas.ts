@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { Router } from 'express';
-import { number, z } from 'zod';
+import {  z } from 'zod';
 import { verificaToken } from '../middlewares/verificaToken';
 
 const prisma = new PrismaClient();
@@ -47,25 +47,30 @@ router.post('/', verificaToken, async (req, res) => {
       return;
     }
 
-    // Cria a despesa
-    const despesa = await prisma.despesas.create({
-      data: validaDespesas.data,
+    // Cria a despesa e a movimentação em uma transação
+    const novaDespesa = await prisma.$transaction(async (prisma) => {
+      // Cria a despesa
+      const despesa = await prisma.despesas.create({
+        data: validaDespesas.data,
+      });
+
+      // Cria a movimentação relacionada
+      await prisma.movimentacoes.create({
+        data: {
+          date: validaDespesas.data.date ? new Date(validaDespesas.data.date) : new Date(),
+          description: validaDespesas.data.description || `Movimentação para despesa ${despesa.id}`,
+          account: validaDespesas.data.account,
+          amount: validaDespesas.data.amount || 0,
+          status: validaDespesas.data.status || 'PENDENTE',
+          tipo: 'SAIDA', // Despesas são do tipo SAIDA
+          debitoId: despesa.id, // Associa à despesa criada
+        },
+      });
+
+      return despesa;
     });
 
-    // Cria a movimentação relacionada
-    await prisma.movimentacoes.create({
-      data: {
-        date: validaDespesas.data.date ? new Date(validaDespesas.data.date) : new Date(),
-        description: validaDespesas.data.description,
-        account: validaDespesas.data.account,
-        amount: validaDespesas.data.amount || 0,
-        status: validaDespesas.data.status,
-        tipo: 'SAIDA',
-        despesaId: despesa.id,
-      },
-    });
-
-    res.status(201).json(despesa);
+    res.status(201).json(novaDespesa);
   } catch (error) {
     console.error('Erro ao criar despesa:', error);
     res.status(500).json({ error: 'Erro ao criar despesa' });
@@ -82,12 +87,29 @@ router.patch('/:id', verificaToken, async (req, res) => {
   }
 
   try {
-    // Validação com Zod (partial permite campos opcionais)
     const data = despesaSchema.partial().parse(req.body);
 
-    const despesaAtualizada = await prisma.despesas.update({
-      where: { id: Number(id) },
-      data,
+    // Atualiza a despesa e a movimentação em uma transação
+    const despesaAtualizada = await prisma.$transaction(async (prisma) => {
+      // Atualiza a despesa
+      const despesa = await prisma.despesas.update({
+        where: { id: Number(id) },
+        data,
+      });
+
+      // Atualiza a movimentação relacionada
+      await prisma.movimentacoes.updateMany({
+        where: { debitoId: Number(id) },
+        data: {
+          date: data.date ? new Date(data.date) : undefined,
+          description: data.description,
+          account: data.account,
+          amount: data.amount,
+          status: data.status,
+        },
+      });
+
+      return despesa;
     });
 
     res.json(despesaAtualizada);
@@ -114,14 +136,17 @@ router.delete('/:id', verificaToken, async (req, res) => {
   }
 
   try {
-    // Exclui a despesa
-    await prisma.despesas.delete({
-      where: { id: Number(id) },
-    });
+    // Exclui a despesa e a movimentação em uma transação
+    await prisma.$transaction(async (prisma) => {
+      // Remove a movimentação relacionada (se existir)
+      await prisma.movimentacoes.deleteMany({
+        where: { debitoId: Number(id) },
+      });
 
-    // Remove a movimentação relacionada (se existir)
-    await prisma.movimentacoes.deleteMany({
-      where: { despesaId: Number(id) },
+      // Exclui a despesa
+      await prisma.despesas.delete({
+        where: { id: Number(id) },
+      });
     });
 
     res.status(204).send();

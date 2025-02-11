@@ -43,10 +43,21 @@ CREATE TABLE "despesas" (
     "account" "ACCOUNT",
     "category" "CATEGORY",
     "subcategory" TEXT,
-    "value" DOUBLE PRECISION,
+    "amount" DOUBLE PRECISION,
     "status" "STATUS",
 
     CONSTRAINT "despesas_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "bancos" (
+    "id" SERIAL NOT NULL,
+    "date" TIMESTAMP(3),
+    "account" "ACCOUNT",
+    "description" TEXT,
+    "amount" DOUBLE PRECISION,
+
+    CONSTRAINT "bancos_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable

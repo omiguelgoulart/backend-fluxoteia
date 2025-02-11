@@ -9,7 +9,6 @@ router.get('/', async (req, res) => {
   try {
     const movimentacoes = await prisma.movimentacoes.findMany({
       include: {
-        entrada: true,
         despesa: true,
       },
       orderBy: {

@@ -6,6 +6,7 @@ import routesDespesas from './routes/despesas';
 import routesEntradas from './routes/entradas';
 import routesCupom from './routes/cupom';
 import routesMovimentacao from './routes/movimentacoes';
+import routesBancos from './routes/bancos';
 import { Request, Response, NextFunction } from 'express';
 
 
@@ -42,6 +43,7 @@ app.use('/despesas', routesDespesas);
 app.use('/entradas', routesEntradas);
 app.use('/cupom', routesCupom);
 app.use('/movimentacao', routesMovimentacao);
+app.use('/bancos', routesBancos);
 
 
 app.get('/', (req, res) => {
